@@ -14,23 +14,17 @@
 <div class="container">
   <h2 class="mb-3">Pokémon Collection</h2>
 
-  <!-- File Input -->
   <input type="file" id="fileInput" class="form-control mb-3">
 
-  <!-- Filters -->
   <div class="d-flex align-items-center mb-3">
     <input type="checkbox" id="uniqueCheckbox" class="form-check-input me-2">
     <label for="uniqueCheckbox" class="me-3">Show Only Unique</label>
-
     <select id="typeFilter" class="form-select w-auto">
       <option value="all">All Types</option>
     </select>
   </div>
 
-  <!-- Summary Section -->
   <div id="pokemonSummary" class="pokemonSummary alert alert-secondary d-none"></div>
-
-  <!-- Accordion Container -->
   <div class="accordion" id="pokemonAccordion"></div>
 </div>
 
@@ -51,7 +45,6 @@
       try {
         allPokemons = JSON.parse(e.target.result);
         allPokemons.sort((a, b) => new Date(b.captured_date) - new Date(a.captured_date));
-
         populateTypeFilter(allPokemons);
         updateFilteredData();
       } catch (error) {
@@ -64,9 +57,7 @@
   function populateTypeFilter(pokemons) {
     const typeFilter = document.getElementById("typeFilter");
     const allTypes = new Set();
-
     pokemons.forEach(pokemon => pokemon.type.forEach(t => allTypes.add(t)));
-
     typeFilter.innerHTML = `<option value="all">All Types</option>`;
     allTypes.forEach(type => {
       typeFilter.innerHTML += `<option value="${type}">${type}</option>`;
@@ -79,14 +70,14 @@
     let filteredPokemons = [...allPokemons];
 
     if (showUnique) {
-      const oldestPokemons = {};
+      const newestPokemons = {};
       filteredPokemons.forEach(pokemon => {
         const date = new Date(pokemon.captured_date);
-        if (!oldestPokemons[pokemon.name] || date < new Date(oldestPokemons[pokemon.name].captured_date)) {
-          oldestPokemons[pokemon.name] = pokemon;
+        if (!newestPokemons[pokemon.name] || date > new Date(newestPokemons[pokemon.name].captured_date)) {
+          newestPokemons[pokemon.name] = pokemon;
         }
       });
-      filteredPokemons = Object.values(oldestPokemons);
+      filteredPokemons = Object.values(newestPokemons);
     }
 
     if (selectedType !== "all") {
@@ -101,7 +92,6 @@
     const uniquePokemonSet = new Set();
     const totalPokemonCount = pokemons.length;
 
-    console.log('---', `pokemons`, pokemons);
     pokemons.forEach(pokemon => {
       uniquePokemonSet.add(pokemon.name);
       const date = pokemon.captured_date.split(" ")[0];
@@ -121,17 +111,16 @@
     let index = 0;
     sortedDates.forEach(date => {
       const pokemons = groupedByDate[date];
-
       const accordionItem = document.createElement("div");
       accordionItem.classList.add("accordion-item");
 
       accordionItem.innerHTML = `
           <h2 class="accordion-header">
-            <button class="accordion-button ${index !== 0 ? "collapsed" : ""}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${index}">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${index}">
               ${date} ( ${pokemons.length} Pokémon )
             </button>
           </h2>
-          <div id="collapse${index}" class="accordion-collapse collapse ${index === 0 ? "show" : ""}" data-bs-parent="#pokemonAccordion">
+          <div id="collapse${index}" class="accordion-collapse collapse show" data-bs-parent="#pokemonAccordion">
             <div class="accordion-body">
               <table class="table table-dark table-striped">
                 <thead>
