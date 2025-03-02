@@ -50,8 +50,15 @@
     <strong>Unique:</strong> <span id="uniqueCount">0</span> <strong>All Count:</strong> <span id="allCount">0</span>
   </div>
 
+
   <button id="removeAllDup" style="display:none;" class="btn btn-warning mt-3" onclick="removeLowLevelDuplicates()">Remove Low Level Duplicates</button>
-  <button id="downloadBtn" style="display:none;" class="btn btn-secondary mt-3" onclick="downloadPokemons()">Download updated Pokemons</button>
+
+  <div  id="downloadBlock" style="display:flex; align-items: baseline;">
+    <button class="btn btn-secondary mt-3 me-3" onclick="downloadPokemons()">Download updated Pokemons</button>
+    <div class="alert alert-secondary" role="alert">
+      <span style="color: #c39b62">WARNING !!!</span> before replace your <span style="color: #c39b62">mypokemon.json</span> file, make a copy as <span style="color: #c39b62">backup</span>
+    </div>
+  </div>
   <table class="table table-bordered mt-4 d-none" id="dataTable">
     <thead class="table-dark">
     <tr>
@@ -155,7 +162,7 @@
     document.getElementById("dataTable").classList.remove("d-none");
     document.getElementById("output").innerText = "JSON Processed Successfully!";
     document.getElementById("removeAllDup").style.display = "block";
-    document.getElementById("downloadBtn").style.display = "block";
+    document.getElementById("downloadBlock").style.display = "flex";
     updateCounts();
   }
 
