@@ -50,6 +50,8 @@
     reader.onload = function(e) {
       try {
         allPokemons = JSON.parse(e.target.result);
+        allPokemons.sort((a, b) => new Date(b.captured_date) - new Date(a.captured_date));
+
         populateTypeFilter(allPokemons);
         updateFilteredData();
       } catch (error) {
@@ -74,15 +76,17 @@
   function updateFilteredData() {
     const showUnique = document.getElementById("uniqueCheckbox").checked;
     const selectedType = document.getElementById("typeFilter").value;
-    let filteredPokemons = allPokemons;
+    let filteredPokemons = [...allPokemons];
 
     if (showUnique) {
-      const uniqueSet = new Set();
-      filteredPokemons = filteredPokemons.filter(pokemon => {
-        if (uniqueSet.has(pokemon.name)) return false;
-        uniqueSet.add(pokemon.name);
-        return true;
+      const oldestPokemons = {};
+      filteredPokemons.forEach(pokemon => {
+        const date = new Date(pokemon.captured_date);
+        if (!oldestPokemons[pokemon.name] || date < new Date(oldestPokemons[pokemon.name].captured_date)) {
+          oldestPokemons[pokemon.name] = pokemon;
+        }
       });
+      filteredPokemons = Object.values(oldestPokemons);
     }
 
     if (selectedType !== "all") {
@@ -97,6 +101,7 @@
     const uniquePokemonSet = new Set();
     const totalPokemonCount = pokemons.length;
 
+    console.log('---', `pokemons`, pokemons);
     pokemons.forEach(pokemon => {
       uniquePokemonSet.add(pokemon.name);
       const date = pokemon.captured_date.split(" ")[0];
@@ -135,7 +140,9 @@
                     <th width="120">Name</th>
                     <th width="60">Level</th>
                     <th width="120">Type</th>
-                    <th>Ability</th>
+                    <th width="120">Ability</th>
+                    <th width="60">id</th>
+                    <th>Capture Date</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -146,6 +153,8 @@
                       <td>${pokemon.level}</td>
                       <td>${pokemon.type.join(", ")}</td>
                       <td>${pokemon.ability}</td>
+                      <td>${pokemon.id}</td>
+                      <td>${pokemon.captured_date}</td>
                     </tr>
                   `).join("")}
                 </tbody>
