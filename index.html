@@ -19,6 +19,17 @@
   <button class="btn btn-success" onclick="readJSON()">Upload</button>
 
   <p class="mt-3" id="output"></p>
+
+  <!-- Table to display data -->
+  <table class="table table-bordered mt-4 d-none" id="dataTable">
+    <thead class="table-dark">
+    <tr>
+      <th>Image</th>
+      <th>Name</th>
+    </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+  </table>
 </div>
 
 <script>
@@ -38,16 +49,24 @@
             return;
           }
 
-          // Create an object to count occurrences of each name
-          let nameCounts = {};
+          let tableBody = document.getElementById("tableBody");
+          tableBody.innerHTML = ""; // Clear previous data
 
           jsonData.forEach(obj => {
-            if (obj.name) {nameCounts[obj.name] = (nameCounts[obj.name] || 0) + 1;}
+            if (obj.id && obj.name) {
+              let imgUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${obj.id}.png`;
+
+              let row = `<tr>
+                <td><img src="${imgUrl}" alt="${obj.name}" width="80" height="80"></td>
+                <td>${obj.name}</td>
+              </tr>`;
+
+              tableBody.innerHTML += row;
+            }
           });
 
-          console.log('---', `jsonData`, jsonData);
-          document.getElementById("output").innerText = "JSON Processed Successfully! Check the console.";
-          console.log("Name Count Object:", nameCounts);
+          document.getElementById("dataTable").classList.remove("d-none");
+          document.getElementById("output").innerText = "JSON Processed Successfully!";
 
         } catch (error) {
           document.getElementById("output").innerText = "Error: Invalid JSON file.";
