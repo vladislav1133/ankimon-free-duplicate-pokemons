@@ -51,7 +51,7 @@
   </div>
 
 
-  <button id="removeAllDup" style="display:none;" class="btn btn-warning mt-3" onclick="removeLowLevelDuplicates()">Remove Low Level Duplicates</button>
+  <button id="removeAllDup" style="display:none;" class="btn btn-warning mt-3" onclick="removeLowLevelDuplicates()">Free All Low Level Duplicates</button>
 
   <div  id="downloadBlock" style="display:none; align-items: baseline;">
     <button class="btn btn-secondary mt-3 me-3" onclick="downloadPokemons()">Download updated Pokemons</button>
@@ -153,7 +153,7 @@
           <td><img src="${imgUrl}" alt="${obj.name}" width="80" height="80"></td>
           <td>${obj.name} - ID: ${obj.id} - lvl: ${obj.level}  ${obj.individual_id === mainPokemon[0].individual_id ? '<div>⭐️ (MAIN POKEMON) ⭐️</div>' : ''}</td>
           <td>${obj.individual_id}</td>
-          <td>${nameCounts[obj.name] > 1 && obj.individual_id !== mainPokemon[0].individual_id ? `<button class="btn btn-sm btn-danger" onclick="removeEntry('${obj.individual_id}')">Remove</button>` : ''}</td>
+          <td>${nameCounts[obj.name] > 1 && obj.individual_id !== mainPokemon[0].individual_id ? `<button class="btn btn-sm btn-danger" onclick="removeEntry('${obj.individual_id}')">Free pokemon</button>` : ''}</td>
         </tr>`;
         tableBody.innerHTML += row;
       }
