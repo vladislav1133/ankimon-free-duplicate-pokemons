@@ -20,15 +20,19 @@
   </div>
 
   <button class="btn btn-success" onclick="readJSON()">Upload</button>
+  <button class="btn btn-danger d-none" id="removeDuplicatesBtn" onclick="removeDuplicates()">Remove Duplicates</button>
 
   <p class="mt-3" id="output"></p>
 
+  
   <!-- Table to display data -->
   <table class="table table-bordered mt-4 d-none" id="dataTable">
     <thead class="table-dark">
     <tr>
-      <th style="width: 50px; white-space: nowrap;">Image</th>
-      <th>Name - ID - level</th>
+      <th style="width: 50px;">Image</th>
+      <th>Name - ID - Level</th>
+      <th>Game Individual ID</th>
+      <th>Action</th>
     </tr>
     </thead>
     <tbody id="tableBody"></tbody>
@@ -36,6 +40,9 @@
 </div>
 
 <script>
+  let jsonData = [];  // Store original JSON data
+  let nameCounts = {}; // Store name counts
+
   function readJSON() {
     let fileInput = document.getElementById("fileInput");
 
@@ -45,45 +52,20 @@
       let reader = new FileReader();
       reader.onload = function(event) {
         try {
-          let jsonData = JSON.parse(event.target.result);
-
+          jsonData = JSON.parse(event.target.result); // Store JSON globally
 
           if (!Array.isArray(jsonData)) {
             document.getElementById("output").innerText = "Error: JSON must be a list of objects.";
             return;
           }
 
-          let nameCounts = {}; // Object to store name counts
-          // Count occurrences of each name first
-          jsonData.forEach(obj => {
-            if (obj.name) {
-              nameCounts[obj.name] = (nameCounts[obj.name] || 0) + 1;
-            }
-          });
-
-          const checkDup = (nm) => {return nameCounts[nm] && nameCounts[nm] > 1;}
-          let tableBody = document.getElementById("tableBody");
-          tableBody.innerHTML = ""; // Clear previous data
+          countNames(); // Count duplicates
+          renderTable(); // Render table
 
           console.log('---', `jsonData`, jsonData);
-          jsonData.sort((a, b) => a.id - b.id).forEach(obj => {
-            if (obj.id && obj.name) {
-              let imgUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${obj.id}.png`;
-
-              let row = `<tr class="${checkDup(obj.name) ? 'duplicate':''}">
-                <td><img src="${imgUrl}" alt="${obj.name}" width="80" height="80"></td>
-                <td>${obj.name} - ${obj.id} - ${obj.level}lv</td>
-              </tr>`;
-
-              tableBody.innerHTML += row;
-            }
-          });
-
-          console.log("Name Count Object:", nameCounts);
-
-          document.getElementById("dataTable").classList.remove("d-none");
-          document.getElementById("output").innerText = "JSON Processed Successfully!";
-
+          jsonData.forEach((o) => {
+            console.log('---', `name=${o.name}, inID=${o.individual_id}`);
+          })
         } catch (error) {
           document.getElementById("output").innerText = "Error: Invalid JSON file.";
           console.error("Error parsing JSON:", error);
@@ -94,6 +76,68 @@
     } else {
       document.getElementById("output").innerText = "No file selected.";
     }
+  }
+
+  function countNames() {
+    nameCounts = {}; // Reset counts
+    jsonData.forEach(obj => {
+      if (obj.name) {nameCounts[obj.name] = (nameCounts[obj.name] || 0) + 1;}
+    });
+  }
+
+  function renderTable() {
+    let tableBody = document.getElementById("tableBody");
+    tableBody.innerHTML = ""; // Clear previous data
+
+    let hasDuplicates = Object.values(nameCounts).some(count => count > 1);
+
+    jsonData.sort((a, b) => a.id - b.id).forEach(obj => {
+      if (obj.id && obj.name && obj.individual_id) {
+        let imgUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${obj.id}.png`;
+
+        let row = `<tr class="${nameCounts[obj.name] > 1 ? 'duplicate' : ''}">
+          <td><img src="${imgUrl}" alt="${obj.name}" width="80" height="80"></td>
+          <td>${obj.name} - ${obj.id} - ${obj.level}lv</td>
+          <td>${obj.individual_id}lv</td>
+          <td>${nameCounts[obj.name] > 1 ? `<button class="btn btn-sm btn-danger" onclick="removeEntry('${obj.individual_id}')">Remove</button>` : ''}</td>
+        </tr>`;
+
+        tableBody.innerHTML += row;
+      }
+    });
+
+    document.getElementById("dataTable").classList.remove("d-none");
+    document.getElementById("output").innerText = "JSON Processed Successfully!";
+
+    let removeBtn = document.getElementById("removeDuplicatesBtn");
+    removeBtn.classList.toggle("d-none", !hasDuplicates);
+  }
+
+  function removeDuplicates() {
+    let seen = new Set();
+    jsonData = jsonData.filter(obj => {
+      if (seen.has(obj.name)) {
+        return false;
+      }
+      seen.add(obj.name);
+      return true;
+    });
+
+    countNames();
+    renderTable();
+  }
+
+  function removeEntry(individual_id) {
+    console.log('---', `inIDgot`, individual_id);
+
+
+    console.log('---', `before`, jsonData.length);
+    jsonData = jsonData.filter(obj => {
+      return obj.individual_id !== individual_id
+    });
+    console.log('---', `after filter`, jsonData.length);
+    countNames();
+    renderTable();
   }
 </script>
 
