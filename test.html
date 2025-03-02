@@ -70,15 +70,18 @@
     let filteredPokemons = [...allPokemons];
 
     if (showUnique) {
-      const newestPokemons = {};
+      const oldestPokemons = {};
       filteredPokemons.forEach(pokemon => {
         const date = new Date(pokemon.captured_date);
-        if (!newestPokemons[pokemon.name] || date > new Date(newestPokemons[pokemon.name].captured_date)) {
-          newestPokemons[pokemon.name] = pokemon;
+        if (!oldestPokemons[pokemon.name] || date < new Date(oldestPokemons[pokemon.name].captured_date)) {
+          oldestPokemons[pokemon.name] = pokemon;
         }
       });
-      filteredPokemons = Object.values(newestPokemons);
+      filteredPokemons = Object.values(oldestPokemons);
     }
+
+    // Ensure the final list is sorted correctly by capture date
+    filteredPokemons.sort((a, b) => new Date(b.captured_date) - new Date(a.captured_date));
 
     if (selectedType !== "all") {
       filteredPokemons = filteredPokemons.filter(pokemon => pokemon.type.includes(selectedType));
