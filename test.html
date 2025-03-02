@@ -6,7 +6,6 @@
   <title>Pokémon Collection</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-
       .pokemonSummary strong { font-weight: normal; color: #c39b62; }
   </style>
 </head>
@@ -18,6 +17,16 @@
   <!-- File Input -->
   <input type="file" id="fileInput" class="form-control mb-3">
 
+  <!-- Filters -->
+  <div class="d-flex align-items-center mb-3">
+    <input type="checkbox" id="uniqueCheckbox" class="form-check-input me-2">
+    <label for="uniqueCheckbox" class="me-3">Show Only Unique</label>
+
+    <select id="typeFilter" class="form-select w-auto">
+      <option value="all">All Types</option>
+    </select>
+  </div>
+
   <!-- Summary Section -->
   <div id="pokemonSummary" class="pokemonSummary alert alert-secondary d-none"></div>
 
@@ -27,7 +36,11 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+  let allPokemons = [];
+
   document.getElementById("fileInput").addEventListener("change", handleFileUpload);
+  document.getElementById("uniqueCheckbox").addEventListener("change", updateFilteredData);
+  document.getElementById("typeFilter").addEventListener("change", updateFilteredData);
 
   function handleFileUpload(event) {
     const file = event.target.files[0];
@@ -36,8 +49,9 @@
     const reader = new FileReader();
     reader.onload = function(e) {
       try {
-        const pokemons = JSON.parse(e.target.result);
-        displayPokemon(pokemons);
+        allPokemons = JSON.parse(e.target.result);
+        populateTypeFilter(allPokemons);
+        updateFilteredData();
       } catch (error) {
         console.error("Invalid JSON file:", error);
       }
@@ -45,38 +59,64 @@
     reader.readAsText(file);
   }
 
+  function populateTypeFilter(pokemons) {
+    const typeFilter = document.getElementById("typeFilter");
+    const allTypes = new Set();
+
+    pokemons.forEach(pokemon => pokemon.type.forEach(t => allTypes.add(t)));
+
+    typeFilter.innerHTML = `<option value="all">All Types</option>`;
+    allTypes.forEach(type => {
+      typeFilter.innerHTML += `<option value="${type}">${type}</option>`;
+    });
+  }
+
+  function updateFilteredData() {
+    const showUnique = document.getElementById("uniqueCheckbox").checked;
+    const selectedType = document.getElementById("typeFilter").value;
+    let filteredPokemons = allPokemons;
+
+    if (showUnique) {
+      const uniqueSet = new Set();
+      filteredPokemons = filteredPokemons.filter(pokemon => {
+        if (uniqueSet.has(pokemon.name)) return false;
+        uniqueSet.add(pokemon.name);
+        return true;
+      });
+    }
+
+    if (selectedType !== "all") {
+      filteredPokemons = filteredPokemons.filter(pokemon => pokemon.type.includes(selectedType));
+    }
+
+    displayPokemon(filteredPokemons);
+  }
+
   function displayPokemon(pokemons) {
     const groupedByDate = {};
-    const uniquePokemonSet = new Set(); // To store unique Pokémon names
+    const uniquePokemonSet = new Set();
     const totalPokemonCount = pokemons.length;
 
-    // Group Pokémon by "captured_date" and track unique names
     pokemons.forEach(pokemon => {
-      uniquePokemonSet.add(pokemon.name); // Add name to Set (duplicates auto-ignored)
-      const date = pokemon.captured_date.split(" ")[0]; // Extract only the date
+      uniquePokemonSet.add(pokemon.name);
+      const date = pokemon.captured_date.split(" ")[0];
       if (!groupedByDate[date]) groupedByDate[date] = [];
       groupedByDate[date].push(pokemon);
     });
 
-    // Unique Pokémon count
     const uniquePokemonCount = uniquePokemonSet.size;
-
-    // Update Summary Section
     const summaryDiv = document.getElementById("pokemonSummary");
     summaryDiv.innerHTML = `Unique: <strong>${uniquePokemonCount}</strong> | Total <strong>${totalPokemonCount}</strong>`;
     summaryDiv.classList.remove("d-none");
 
-    // Sort dates (newest first)
     const sortedDates = Object.keys(groupedByDate).sort((a, b) => new Date(b) - new Date(a));
-
     const accordion = document.getElementById("pokemonAccordion");
-    accordion.innerHTML = ""; // Clear previous content
+    accordion.innerHTML = "";
 
     let index = 0;
     sortedDates.forEach(date => {
       const pokemons = groupedByDate[date];
 
-      // Create accordion item
       const accordionItem = document.createElement("div");
       accordionItem.classList.add("accordion-item");
 
