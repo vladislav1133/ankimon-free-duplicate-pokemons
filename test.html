@@ -48,11 +48,14 @@
       groupedByDate[date].push(pokemon);
     });
 
+    // Sort dates (newest first)
+    const sortedDates = Object.keys(groupedByDate).sort((a, b) => new Date(b) - new Date(a));
+
     const accordion = document.getElementById("pokemonAccordion");
     accordion.innerHTML = ""; // Clear previous content
 
     let index = 0;
-    for (const date in groupedByDate) {
+    sortedDates.forEach(date => {
       const pokemons = groupedByDate[date];
 
       // Create accordion item
@@ -80,7 +83,7 @@
                 <tbody>
                   ${pokemons.map(pokemon => `
                     <tr>
-                      <td><img src="${getPokemonImage(pokemon.id)}" alt="${pokemon.name}" width="50"></td>
+                      <td><img src="${getPokemonImage(pokemon.id)}" alt="${pokemon.name}" width="100"></td>
                       <td>${pokemon.name}</td>
                       <td>${pokemon.level}</td>
                       <td>${pokemon.type.join(", ")}</td>
@@ -94,7 +97,7 @@
         `;
       accordion.appendChild(accordionItem);
       index++;
-    }
+    });
   }
 
   function getPokemonImage(id) {
