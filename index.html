@@ -204,14 +204,19 @@
       } else {
         let existing = seen[key];
         if (pokemon.individual_id === mainPokemon[0].individual_id) {
-          seen[key] = pokemon;
+          seen[key] = pokemon; // Ensure mainPokemon[0] is considered
+        } else if (existing.individual_id === mainPokemon[0].individual_id) {
+          seen[key] = existing; // Prevent overwriting mainPokemon[0]
         } else if (pokemon.level > existing.level) {
           seen[key] = pokemon;
-        } else if (pokemon.level === existing.level) {
-          seen[key] = existing;
         }
       }
     });
+
+    // Ensure mainPokemon[0] is in the final list
+    if (!Object.values(seen).some(p => p.individual_id === mainPokemon[0].individual_id)) {
+      seen[mainPokemon[0].id] = mainPokemon[0];
+    }
 
     allPokemon = Object.values(seen);
     countNames();
