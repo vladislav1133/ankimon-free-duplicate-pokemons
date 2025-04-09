@@ -62,7 +62,6 @@
     <strong>Unique:</strong> <span id="uniqueCount">0</span> <strong>All Count:</strong> <span id="allCount">0</span>
   </div>
 
-
   <button id="removeAllDup" style="display:none;" class="btn btn-warning mt-3" onclick="removeLowLevelDuplicates()">Free All Low Level Duplicates</button>
 
   <div  id="downloadBlock" style="display:none; align-items: baseline;">
@@ -71,6 +70,14 @@
       <span style="color: #c39b62">WARNING !!!</span> before replace your <span style="color: #c39b62">mypokemon.json</span> file, make a copy as <span style="color: #c39b62">backup</span>
     </div>
   </div>
+
+  <!-- Pagination Controls -->
+  <div class="d-flex justify-content-between align-items-center mt-3">
+    <button id="prevPage" class="btn btn-secondary" onclick="prevPage()" disabled>Previous</button>
+    <span>Page <span id="currentPage">1</span> of <span id="totalPages">1</span></span>
+    <button id="nextPage" class="btn btn-secondary" onclick="nextPage()" disabled>Next</button>
+  </div>
+
   <table class="table table-bordered mt-4 d-none" id="dataTable">
     <thead class="table-dark">
     <tr>
@@ -135,6 +142,17 @@
       reader2.readAsText(fileInput2.files[0]);
     }
   }
+  function downloadPokemons() {
+    const jsonData = JSON.stringify(allPokemon, null, 2);
+    const blob = new Blob([jsonData], { type: "application/json" });
+    const link = document.createElement("a");
+
+    link.href = URL.createObjectURL(blob);
+    link.download = "mypokemon.json";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
 
   function displayMainPokemon(pokemon) {
     let mainBox = document.getElementById("mainPokemonBox");
@@ -155,29 +173,6 @@
     });
   }
 
-  function renderTable() {
-    let tableBody = document.getElementById("tableBody");
-    tableBody.innerHTML = "";
-
-    allPokemon.sort((a, b) => a.id - b.id).forEach(obj => {
-      if (obj.id && obj.name && obj.individual_id) {
-        let imgUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${obj.id}.png`;
-        let row = `<tr class="${nameCounts[obj.name] > 1 ? 'duplicate' : ''} ${obj.individual_id === mainPokemon[0].individual_id ? 'mainRow' : ''}">
-          <td><img src="${imgUrl}" alt="${obj.name}" width="80" height="80"></td>
-          <td>${obj.name} - ID: ${obj.id} - lvl: ${obj.level}  ${obj.individual_id === mainPokemon[0].individual_id ? '<div>⭐️ (MAIN POKEMON) ⭐️</div>' : ''}</td>
-          <td>${obj.individual_id}</td>
-          <td>${nameCounts[obj.name] > 1 && obj.individual_id !== mainPokemon[0].individual_id ? `<button class="btn btn-sm btn-danger" onclick="removeEntry('${obj.individual_id}')">Free pokemon</button>` : ''}</td>
-        </tr>`;
-        tableBody.innerHTML += row;
-      }
-    });
-
-    document.getElementById("dataTable").classList.remove("d-none");
-    document.getElementById("output").innerText = "JSON Processed Successfully!";
-    document.getElementById("removeAllDup").style.display = "block";
-    document.getElementById("downloadBlock").style.display = "flex";
-    updateCounts();
-  }
 
   function updateCounts() {
     document.getElementById("allCount").innerText = allPokemon.length;
@@ -224,16 +219,60 @@
     updateCounts();
   }
 
-  function downloadPokemons() {
-    const jsonData = JSON.stringify(allPokemon, null, 2);
-    const blob = new Blob([jsonData], { type: "application/json" });
-    const link = document.createElement("a");
+  let currentPage = 1;
+  const itemsPerPage = 50;
 
-    link.href = URL.createObjectURL(blob);
-    link.download = "mypokemon.json";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  function renderTable() {
+    let tableBody = document.getElementById("tableBody");
+    tableBody.innerHTML = "";
+
+    const totalPages = Math.ceil(allPokemon.length / itemsPerPage);
+    document.getElementById("totalPages").innerText = totalPages;
+    document.getElementById("currentPage").innerText = currentPage;
+
+    const start = (currentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    const paginatedData = allPokemon.slice(start, end);
+
+    paginatedData.forEach(obj => {
+      if (obj.id && obj.name && obj.individual_id) {
+        let imgUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${obj.id}.png`;
+        let row = `<tr class="${nameCounts[obj.name] > 1 ? 'duplicate' : ''} ${obj.individual_id === mainPokemon[0].individual_id ? 'mainRow' : ''}">
+        <td><img src="${imgUrl}" alt="${obj.name}" width="80" height="80"></td>
+        <td>${obj.name} - ID: ${obj.id} - lvl: ${obj.level}  ${obj.individual_id === mainPokemon[0].individual_id ? '<div>⭐️ (MAIN POKEMON) ⭐️</div>' : ''}</td>
+        <td>${obj.individual_id}</td>
+        <td>${nameCounts[obj.name] > 1 && obj.individual_id !== mainPokemon[0].individual_id ? `<button class="btn btn-sm btn-danger" onclick="removeEntry('${obj.individual_id}')">Free pokemon</button>` : ''}</td>
+      </tr>`;
+        tableBody.innerHTML += row;
+      }
+    });
+
+    document.getElementById("dataTable").classList.remove("d-none");
+    document.getElementById("output").innerText = "JSON Processed Successfully!";
+    document.getElementById("removeAllDup").style.display = "block";
+    document.getElementById("downloadBlock").style.display = "flex";
+
+    updatePaginationButtons(totalPages);
+  }
+
+  function updatePaginationButtons(totalPages) {
+    document.getElementById("prevPage").disabled = currentPage === 1;
+    document.getElementById("nextPage").disabled = currentPage === totalPages || totalPages === 0;
+  }
+
+  function nextPage() {
+    const totalPages = Math.ceil(allPokemon.length / itemsPerPage);
+    if (currentPage < totalPages) {
+      currentPage++;
+      renderTable();
+    }
+  }
+
+  function prevPage() {
+    if (currentPage > 1) {
+      currentPage--;
+      renderTable();
+    }
   }
 </script>
 
