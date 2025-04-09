@@ -80,7 +80,7 @@
 
 
   <div class="d-flex justify-content-between align-items-center mt-3">
-    <input type="text" id="searchInput" class="form-control w-25" placeholder="Search Pokémon by name..." onkeyup="searchPokemon()">
+    <input type="text" id="searchInput" class="form-control w-25" placeholder="Pokémon name..." onkeyup="searchPokemon()">
   </div>
 
   <table class="table table-bordered mt-4 d-none" id="dataTable">
@@ -176,6 +176,8 @@
         nameCounts[obj.name] = (nameCounts[obj.name] || 0) + 1;
       }
     });
+
+    updateCounts();
   }
 
 
@@ -190,7 +192,6 @@
 
     countNames();
     renderTable();
-    updateCounts();
   }
 
   function removeLowLevelDuplicates() {
@@ -220,8 +221,8 @@
 
     allPokemon = Object.values(seen);
     countNames();
-    renderTable();
     updateCounts();
+    renderTable();
   }
 
   let currentPage = 1;
