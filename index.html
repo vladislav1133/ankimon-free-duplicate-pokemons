@@ -78,6 +78,11 @@
     <button id="nextPage" class="btn btn-secondary" onclick="nextPage()" disabled>Next</button>
   </div>
 
+
+  <div class="d-flex justify-content-between align-items-center mt-3">
+    <input type="text" id="searchInput" class="form-control w-25" placeholder="Search Pokémon by name..." onkeyup="searchPokemon()">
+  </div>
+
   <table class="table table-bordered mt-4 d-none" id="dataTable">
     <thead class="table-dark">
     <tr>
@@ -221,25 +226,27 @@
 
   let currentPage = 1;
   const itemsPerPage = 50;
+  let filteredPokemon = [];
 
   function renderTable() {
     let tableBody = document.getElementById("tableBody");
     tableBody.innerHTML = "";
 
-    const totalPages = Math.ceil(allPokemon.length / itemsPerPage);
+    let dataToDisplay = filteredPokemon.length > 0 ? filteredPokemon : allPokemon;
+    const totalPages = Math.ceil(dataToDisplay.length / itemsPerPage);
     document.getElementById("totalPages").innerText = totalPages;
     document.getElementById("currentPage").innerText = currentPage;
 
     const start = (currentPage - 1) * itemsPerPage;
     const end = start + itemsPerPage;
-    const paginatedData = allPokemon.slice(start, end);
+    const paginatedData = dataToDisplay.slice(start, end);
 
     paginatedData.forEach(obj => {
       if (obj.id && obj.name && obj.individual_id) {
         let imgUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${obj.id}.png`;
         let row = `<tr class="${nameCounts[obj.name] > 1 ? 'duplicate' : ''} ${obj.individual_id === mainPokemon[0].individual_id ? 'mainRow' : ''}">
         <td><img src="${imgUrl}" alt="${obj.name}" width="80" height="80"></td>
-        <td>${obj.name} - ID: ${obj.id} - lvl: ${obj.level}  ${obj.individual_id === mainPokemon[0].individual_id ? '<div>⭐️ (MAIN POKEMON) ⭐️</div>' : ''}</td>
+        <td>${obj.name} - ID: ${obj.id} - lvl: ${obj.level} ${obj.individual_id === mainPokemon[0].individual_id ? '<div>⭐️ (MAIN POKEMON) ⭐️</div>' : ''}</td>
         <td>${obj.individual_id}</td>
         <td>${nameCounts[obj.name] > 1 && obj.individual_id !== mainPokemon[0].individual_id ? `<button class="btn btn-sm btn-danger" onclick="removeEntry('${obj.individual_id}')">Free pokemon</button>` : ''}</td>
       </tr>`;
@@ -261,7 +268,7 @@
   }
 
   function nextPage() {
-    const totalPages = Math.ceil(allPokemon.length / itemsPerPage);
+    const totalPages = Math.ceil((filteredPokemon.length > 0 ? filteredPokemon : allPokemon).length / itemsPerPage);
     if (currentPage < totalPages) {
       currentPage++;
       renderTable();
@@ -273,6 +280,13 @@
       currentPage--;
       renderTable();
     }
+  }
+
+  function searchPokemon() {
+    let query = document.getElementById("searchInput").value.trim().toLowerCase();
+    filteredPokemon = allPokemon.filter(pokemon => pokemon.name.toLowerCase().includes(query));
+    currentPage = 1; // Reset to first page on search
+    renderTable();
   }
 </script>
 
